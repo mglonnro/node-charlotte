@@ -51,6 +51,7 @@ class CharlotteAPI {
     }
   }
 
+  /* Deprecated */
   async getPositionForTime(boatId, t) {
     try {
       const res = await fetch(
@@ -184,6 +185,7 @@ class CharlotteAPI {
     }
   }
 
+  /* fixme Needs refactoring
   async getHistoryByLocation(boatId, src, resolution, sw, ne) {
     try {
       let url =
@@ -204,7 +206,7 @@ class CharlotteAPI {
       console.error(err);
       return null;
     }
-  }
+  } */
 
   async getShortId(boatId) {
     try {
@@ -216,6 +218,29 @@ class CharlotteAPI {
       return null;
     }
   }
+
+  async getApiKey(boatId) {
+    try {
+      const res = await afetch(this.host + "boats/" + boatId + "/apikey");
+      var o = res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async getNewApiKey(boatId) {
+    try {
+      const res = await afetch(this.host + "boats/" + boatId + "/newapikey");
+      var o = res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
 
   async getBoat(boatId) {
     try {
@@ -286,7 +311,7 @@ class CharlotteAPI {
     }
   }
 
-  async getBoatsHistory(boatId, avgmin, fromTime, toTime) {
+  async getHistory(boatId, resolution, fromTime, toTime) {
     try {
       const res = await fetch(
         this.host +
@@ -297,7 +322,7 @@ class CharlotteAPI {
           "&end=" +
           toTime.toISOString() +
           "&resolution=" +
-          avgmin
+          resolution
       );
       var o = res.json();
       return o;
