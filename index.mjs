@@ -221,7 +221,7 @@ class CharlotteAPI {
 
   async getApiKey(boatId) {
     try {
-      const res = await afetch(this.host + "boats/" + boatId + "/apikey");
+      const res = await this.afetch(this.host + "boats/" + boatId + "/apikey");
       var o = res.json();
       return o;
     } catch (err) {
@@ -232,7 +232,7 @@ class CharlotteAPI {
 
   async getNewApiKey(boatId) {
     try {
-      const res = await afetch(this.host + "boats/" + boatId + "/newapikey");
+      const res = await this.afetch(this.host + "boats/" + boatId + "/newapikey");
       var o = res.json();
       return o;
     } catch (err) {
