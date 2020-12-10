@@ -311,7 +311,7 @@ class CharlotteAPI {
     }
   }
 
-  async getHistory(boatId, resolution, fromTime, toTime) {
+  async getHistory(boatId, resolution, fromTime, toTime, sources) {
     try {
       const res = await fetch(
         this.host +
@@ -322,7 +322,8 @@ class CharlotteAPI {
           "&end=" +
           toTime.toISOString() +
           "&resolution=" +
-          resolution
+          resolution + 
+	  (sources ? "&sources=" + JSON.stringify(sources) : "")
       );
       var o = res.json();
       return o;
