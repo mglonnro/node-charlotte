@@ -146,6 +146,20 @@ class CharlotteAPI {
     }
   }
 
+  async getSources(longId) {
+    try {
+      let url = this.host + "boats/" + longId + "/sources";
+
+      const res = await afetch(url);
+      var o = res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+
   async getClaims(longId) {
     try {
       let url = this.host + "boats/" + longId + "/claims";
