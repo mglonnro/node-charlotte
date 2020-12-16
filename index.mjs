@@ -150,7 +150,7 @@ class CharlotteAPI {
     try {
       let url = this.host + "boats/" + longId + "/sources";
 
-      const res = await afetch(url);
+      const res = await this.afetch(url);
       var o = res.json();
       return o;
     } catch (err) {
