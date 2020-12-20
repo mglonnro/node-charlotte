@@ -1,6 +1,8 @@
 import fetch from "node-fetch";
 import geolib from "geolib";
+import Hasher from "./hasher.mjs";
 import { TimeData, TimeSeries } from "@gml/timeseries";
+import fs from "fs";
 
 const API_BETA = "https://community.nakedsailor.blog/api.beta/";
 const API = API_BETA;
@@ -18,6 +20,10 @@ class CharlotteAPI {
     this.auth = idToken;
   }
 
+  setAPIKey(apiKey) {
+    this.apiKey = apiKey;
+  }
+
   async afetch(url, opt) {
     var headers = {};
 
@@ -26,12 +32,18 @@ class CharlotteAPI {
     }
 
     var opts = Object.assign({ method: "GET" }, opt, {
-      headers: Object.assign({}, opt ? opt.headers : {}, headers)
+      headers: Object.assign({}, opt ? opt.headers : {}, headers),
     });
-    console.log("opts", JSON.stringify(opts));
 
-    const res = await fetch(url, opts);
-
+    let realurl = url;
+    if (this.apiKey) {
+      if (url.includes("?") == false) {
+        realurl += "?api_key=" + this.apiKey;
+      } else {
+        realurl += "&api_key=" + this.apiKey;
+      }
+    }
+    const res = await fetch(realurl, opts);
     return res;
   }
 
@@ -42,8 +54,8 @@ class CharlotteAPI {
         body: pic,
         headers: {
           "Content-Type": "text/plain",
-          authorization: "Bearing " + this.auth
-        }
+          authorization: "Bearing " + this.auth,
+        },
       });
     } catch (err) {
       console.error(err);
@@ -54,11 +66,10 @@ class CharlotteAPI {
   /* Deprecated */
   async getPositionForTime(boatId, t) {
     try {
-      const res = await fetch(
+      const res = await this.afetch(
         this.host + "boat/" + boatId + "/lastposition/" + t.toISOString()
       );
       var o = await res.json();
-      console.log(JSON.stringify(o));
       return o;
     } catch (err) {
       console.error(err);
@@ -68,9 +79,10 @@ class CharlotteAPI {
 
   async getLastKnown(longId, t) {
     try {
-      const res = await fetch(this.host + "boats/" + longId + "/history/last/");
+      const res = await this.afetch(
+        this.host + "boats/" + longId + "/history/last/"
+      );
       var o = await res.json();
-      console.log(JSON.stringify(o));
       return o;
     } catch (err) {
       console.error(err);
@@ -80,9 +92,10 @@ class CharlotteAPI {
 
   async getMarks(lat, lng) {
     try {
-      const res = await fetch(this.host + "marks?lat=" + lat + "&lng=" + lng);
+      const res = await this.afetch(
+        this.host + "marks?lat=" + lat + "&lng=" + lng
+      );
       var o = await res.json();
-      //console.log(JSON.stringify(o));
       return o;
     } catch (err) {
       console.error(err);
@@ -92,7 +105,9 @@ class CharlotteAPI {
 
   async getLiveState(longId) {
     try {
-      const res = await fetch(this.host + "boats/" + longId + "/livestate");
+      const res = await this.afetch(
+        this.host + "boats/" + longId + "/livestate"
+      );
       var o = await res.json();
       return o;
     } catch (err) {
@@ -137,7 +152,7 @@ class CharlotteAPI {
     try {
       let url = this.host + "boats/" + longId + "/devices";
 
-      const res = await fetch(url);
+      const res = await this.afetch(url);
       var o = res.json();
       return o;
     } catch (err) {
@@ -159,12 +174,64 @@ class CharlotteAPI {
     }
   }
 
+  async updateSources(boatId, data) {
+    try {
+      const res = await this.afetch(
+        this.host + "boats/" + boatId + "/sources",
+        {
+          method: "PUT",
+          body: JSON.stringify(data),
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      return res;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async uploadData(boatId, fileName) {
+    const stats = fs.statSync(fileName);
+    const fileSizeInBytes = stats.size;
+    const readStream = fs.createReadStream(fileName);
+
+    const hasher = new Hasher();
+    let hash = await hasher.getHash(fileName);
+
+    console.log("fileName", fileName);
+    console.log("fileSizeInBytes", fileSizeInBytes);
+    console.log("hash", hash);
+
+    try {
+      const res = await this.afetch(
+        this.host +
+          "boats/" +
+          boatId +
+          "/data?" +
+          "filename=" +
+          encodeURIComponent(fileName) +
+          "&hash=" +
+          hash,
+        {
+          method: "PUT",
+          body: readStream,
+          headers: {
+            "Content-length": fileSizeInBytes,
+          },
+        }
+      );
+      console.dir(res);
+    } catch (e) {
+      console.error(e);
+    }
+  }
 
   async getClaims(longId) {
     try {
       let url = this.host + "boats/" + longId + "/claims";
 
-      const res = await fetch(url);
+      const res = await this.afetch(url);
       var o = res.json();
       return o;
     } catch (err) {
@@ -177,7 +244,7 @@ class CharlotteAPI {
     try {
       let url = this.host + "boats/" + longId + "/trips";
 
-      const res = await fetch(url);
+      const res = await this.afetch(url);
       var o = res.json();
       return o;
     } catch (err) {
@@ -190,7 +257,7 @@ class CharlotteAPI {
     try {
       let url = this.host + "boats/" + longId + "/trips/" + tripId;
 
-      const res = await fetch(url);
+      const res = await this.afetch(url);
       var o = res.json();
       return o;
     } catch (err) {
@@ -212,7 +279,7 @@ class CharlotteAPI {
         JSON.stringify(ne) +
         "&resolution=" +
         resolution;
-      const res = await fetch(url);
+      const res = await this.afetch(url);
 
       var o = await res.json();
       return new TimeData(o);
@@ -224,7 +291,9 @@ class CharlotteAPI {
 
   async getShortId(boatId) {
     try {
-      const res = await fetch(this.host + "boats/" + boatId + "/shortid");
+      const res = await this.aafetch(
+        this.host + "boats/" + boatId + "/shortid"
+      );
       var o = res.text();
       return o;
     } catch (err) {
@@ -246,7 +315,9 @@ class CharlotteAPI {
 
   async getNewApiKey(boatId) {
     try {
-      const res = await this.afetch(this.host + "boats/" + boatId + "/newapikey");
+      const res = await this.afetch(
+        this.host + "boats/" + boatId + "/newapikey"
+      );
       var o = res.json();
       return o;
     } catch (err) {
@@ -254,7 +325,6 @@ class CharlotteAPI {
       return null;
     }
   }
-
 
   async getBoat(boatId) {
     try {
@@ -283,7 +353,7 @@ class CharlotteAPI {
       const res = await this.afetch(this.host + "boats/" + boatId, {
         method: "PUT",
         body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
       var o = res.json();
       return o;
@@ -296,7 +366,7 @@ class CharlotteAPI {
   async deleteBoat(boatId) {
     try {
       const res = await this.afetch(this.host + "boats/" + boatId, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (res.status == 200) {
@@ -315,7 +385,7 @@ class CharlotteAPI {
       const res = await this.afetch(this.host + "boats", {
         method: "POST",
         body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
       var o = res.json();
       return o;
@@ -327,7 +397,7 @@ class CharlotteAPI {
 
   async getHistory(boatId, resolution, fromTime, toTime, sources) {
     try {
-      const res = await fetch(
+      const res = await this.afetch(
         this.host +
           "boats/" +
           boatId +
@@ -336,8 +406,8 @@ class CharlotteAPI {
           "&end=" +
           toTime.toISOString() +
           "&resolution=" +
-          resolution + 
-	  (sources ? "&sources=" + JSON.stringify(sources) : "")
+          resolution +
+          (sources ? "&sources=" + JSON.stringify(sources) : "")
       );
       var o = res.json();
       return o;
