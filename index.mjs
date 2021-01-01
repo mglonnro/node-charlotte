@@ -16,6 +16,10 @@ class CharlotteAPI {
     }
   }
 
+  static getServer() {
+    return API;
+  }
+
   setAuth(idToken) {
     this.auth = idToken;
   }
@@ -291,7 +295,7 @@ class CharlotteAPI {
 
   async getShortId(boatId) {
     try {
-      const res = await this.aafetch(
+      const res = await this.afetch(
         this.host + "boats/" + boatId + "/shortid"
       );
       var o = res.text();
@@ -337,9 +341,9 @@ class CharlotteAPI {
     }
   }
 
-  async getBoats() {
+  async getBoats(params) {
     try {
-      const res = await this.afetch(this.host + "boats");
+      const res = await this.afetch(this.host + "boats" + this.makeQueryString(params));
       var o = res.json();
       return o;
     } catch (err) {
@@ -415,6 +419,33 @@ class CharlotteAPI {
       console.error(err);
       return null;
     }
+  }
+
+  async processUpload(boatId, id) {
+    const res = await this.afetch(
+	this.host + "boats/" + boatId + "/process/" + id);
+    var o = res.json();
+    return o;
+  }
+
+  makeQueryString(data) {
+    var ret = "";
+
+    if (data) {
+      let keys = Object.keys(data);
+      if (keys.length > 0) {
+	ret = "?";
+
+	for (let x = 0; x < keys.length; x++) {
+	  ret += keys[x]+"=" + encodeURIComponent(data[keys[x]]);
+	  if (x < keys.length) {
+	    ret += "&";
+	  }
+	}
+      } 
+    }
+
+    return ret;
   }
 }
 
