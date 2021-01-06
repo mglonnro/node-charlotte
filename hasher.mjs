@@ -9,11 +9,11 @@ class Hasher {
       try {
         var stream = fs.createReadStream(f);
 
-        stream.on("data", function (data) {
+        stream.on("data", function(data) {
           hash.update(data);
         });
 
-        stream.on("end", function () {
+        stream.on("end", function() {
           resolve(hash.digest("hex"));
         });
       } catch (err) {
