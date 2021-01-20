@@ -36,7 +36,7 @@ class CharlotteAPI {
     }
 
     var opts = Object.assign({ method: "GET" }, opt, {
-      headers: Object.assign({}, opt ? opt.headers : {}, headers)
+      headers: Object.assign({}, opt ? opt.headers : {}, headers),
     });
 
     let realurl = url;
@@ -58,8 +58,8 @@ class CharlotteAPI {
         body: pic,
         headers: {
           "Content-Type": "text/plain",
-          authorization: "Bearing " + this.auth
-        }
+          authorization: "Bearing " + this.auth,
+        },
       });
     } catch (err) {
       console.error(err);
@@ -81,11 +81,29 @@ class CharlotteAPI {
     }
   }
 
-  async getLastKnown(longId, t) {
+  async getLastKnown(longId, t, resolution) {
     try {
-      const res = await this.afetch(
-        this.host + "boats/" + longId + "/history/last/"
-      );
+      var params = [];
+      if (t) {
+        params.push("before=" + t.toISOString());
+      }
+
+      if (resolution) {
+        params.push("resolution=" + resolution);
+      }
+
+      let query = "";
+      for (let x = 0; x < params.length; x++) {
+        if (x > 0) {
+          query += "&";
+        }
+        query += params[x];
+      }
+
+      let url = this.host + "boats/" + longId + "/history/last/?" + query;
+      console.log("URL", url);
+
+      const res = await this.afetch(url);
       var o = await res.json();
       return o;
     } catch (err) {
@@ -185,7 +203,7 @@ class CharlotteAPI {
         {
           method: "PUT",
           body: JSON.stringify(data),
-          headers: { "Content-Type": "application/json" }
+          headers: { "Content-Type": "application/json" },
         }
       );
       return res;
@@ -221,8 +239,8 @@ class CharlotteAPI {
           method: "PUT",
           body: readStream,
           headers: {
-            "Content-length": fileSizeInBytes
-          }
+            "Content-length": fileSizeInBytes,
+          },
         }
       );
       console.dir(res);
@@ -357,7 +375,7 @@ class CharlotteAPI {
       const res = await this.afetch(this.host + "boats/" + boatId, {
         method: "PUT",
         body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
       var o = res.json();
       return o;
@@ -370,7 +388,7 @@ class CharlotteAPI {
   async deleteBoat(boatId) {
     try {
       const res = await this.afetch(this.host + "boats/" + boatId, {
-        method: "DELETE"
+        method: "DELETE",
       });
 
       if (res.status == 200) {
@@ -389,7 +407,7 @@ class CharlotteAPI {
       const res = await this.afetch(this.host + "boats", {
         method: "POST",
         body: JSON.stringify(data),
-        headers: { "Content-Type": "application/json" }
+        headers: { "Content-Type": "application/json" },
       });
       var o = res.json();
       return o;
