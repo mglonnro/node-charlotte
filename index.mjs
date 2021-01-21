@@ -170,6 +170,27 @@ class CharlotteAPI {
     return (a / 1000) * (b / 1000);
   }
 
+  async getMediaGeoJSON(longId, after, before) {
+    try {
+      let url = this.host + "boats/" + longId + "/media?geojson=1";
+
+      if (after) {
+        url += "&after=" + after.toISOString();
+      }
+
+      if (before) {
+        url += "&before=" + before.toISOString();
+      }
+
+      const res = await this.afetch(url);
+      var o = res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
   async getMedia(longId, after, before) {
     try {
       let url = this.host + "boats/" + longId + "/media?";
