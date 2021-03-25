@@ -1,6 +1,10 @@
-# node-charlotte - your digital crew member
+# Charlotte - your digital crew member
 
 [<img width="400" alt="Mapbox" src="https://storage.googleapis.com/charlotte-public/og_image_default.png">](https://beta.charlotte.lc/)
+
+Charlotte is a system for gathering, storing and analyzing NMEA data (this is data from marine sensors) in the cloud. 
+
+`node-charlotte` is a `Node.js` library wrapped around the Charlotte REST API  
 
 ## Installation
 
