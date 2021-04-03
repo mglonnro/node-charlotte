@@ -195,6 +195,30 @@ class CharlotteAPI {
     }
   }
 
+  async getConfig(longId, after, before) {
+    try {
+      let url = this.host + "boats/" + longId + "/config";
+
+      let x = 0;
+
+      if (after) {
+        url += "?after=" + after.toISOString();
+        x++;
+      }
+
+      if (before) {
+        url += (x == 0 ? "?" : "&") + "before=" + before.toISOString();
+      }
+
+      const res = await this.afetch(url);
+      var o = res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
   async getMediaGeoJSON(longId, after, before) {
     try {
       let url = this.host + "boats/" + longId + "/media?geojson=1";
@@ -488,7 +512,15 @@ class CharlotteAPI {
     }
   }
 
-  async getData(boatId, resolution, after, before, filter, bucketSize, sources) {
+  async getData(
+    boatId,
+    resolution,
+    after,
+    before,
+    filter,
+    bucketSize,
+    sources
+  ) {
     try {
       const res = await this.afetch(
         this.host +
@@ -502,7 +534,7 @@ class CharlotteAPI {
           resolution +
           (sources ? "&sources=" + JSON.stringify(sources) : "") +
           (filter ? "&filter=" + filter : "") +
-	  (bucketSize ? "&bucket=" + bucketSize : "")
+          (bucketSize ? "&bucket=" + bucketSize : "")
       );
       var o = res.json();
       return o;
