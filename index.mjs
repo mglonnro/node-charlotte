@@ -170,6 +170,31 @@ class CharlotteAPI {
     return (a / 1000) * (b / 1000);
   }
 
+  async deleteMedia(longId, mediaId) {
+    let url = this.host + "boats/" + longId + "/media/" + mediaId;
+    const res = await this.afetch(url, {
+      method: "DELETE",
+    });
+
+    console.dir(res);
+    return res.ok;
+  }
+
+  async updateMedia(longId, mediaId, data) {
+    let url = this.host + "boats/" + longId + "/media/" + mediaId;
+    const res = await this.afetch(url, {
+      method: "PUT",
+      body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    if (res.ok) {
+      return res.json();
+    } else {
+      return null;
+    }
+  }
+
   async getMediaGeoJSON(longId, after, before) {
     try {
       let url = this.host + "boats/" + longId + "/media?geojson=1";
@@ -196,15 +221,15 @@ class CharlotteAPI {
       let url = this.host + "boats/" + longId + "/media?";
 
       if (after) {
-	url += "after=" + after.toISOString();
+        url += "after=" + after.toISOString();
       }
 
       if (before) {
-	if (after) {
-	  url += "&";
-	}
+        if (after) {
+          url += "&";
+        }
 
-	url += "before=" + before.toISOString();
+        url += "before=" + before.toISOString();
       }
 
       const res = await this.afetch(url);
@@ -215,7 +240,6 @@ class CharlotteAPI {
       return null;
     }
   }
-
 
   async getDevices(longId) {
     try {
@@ -456,6 +480,30 @@ class CharlotteAPI {
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" },
       });
+      var o = res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async getData(boatId, resolution, after, before, filter, bucketSize, sources) {
+    try {
+      const res = await this.afetch(
+        this.host +
+          "boats/" +
+          boatId +
+          "/data/?after=" +
+          after.toISOString() +
+          "&before=" +
+          before.toISOString() +
+          "&resolution=" +
+          resolution +
+          (sources ? "&sources=" + JSON.stringify(sources) : "") +
+          (filter ? "&filter=" + filter : "") +
+	  (bucketSize ? "&bucket=" + bucketSize : "")
+      );
       var o = res.json();
       return o;
     } catch (err) {
