@@ -5,11 +5,12 @@ import { TimeData, TimeSeries } from "@gml/timeseries";
 import fs from "fs";
 
 const API_BETA = "https://community.nakedsailor.blog/api.beta/";
+const API_PRODUCTION = "https://community.nakedsailor.blog/api/";
 const API = API_BETA;
 
 class CharlotteAPI {
-  constructor(idToken) {
-    this.host = "https://community.nakedsailor.blog/api.beta/";
+  constructor(idToken, beta) {
+    this.host = beta ? API_BETA : API_PRODUCTON;
 
     if (idToken) {
       this.auth = idToken;
@@ -125,6 +126,48 @@ class CharlotteAPI {
     }
   }
 
+  async getSpeeds(longId, p) {
+    let params = [];
+    if (p && p.variationlimits) {
+      params.push("variationlimits=true");
+    }
+
+    if (p && p.percentile) {
+      params.push("percentile=" + p.percentile);
+    }
+
+    if (p && p.unit) {
+      params.push("unit=" + p.unit);
+    }
+
+    if (p && p.twabucket) {
+      params.push("twabucket=" + p.twabucket);
+    }
+
+    if (p && p.twsbucket) {
+      params.push("twsbucket=" + p.twsbucket);
+    }
+
+    let query = "";
+    for (let x = 0; x < params.length; x++) {
+      if (x > 0) {
+        query += "&";
+      }
+      query += params[x];
+    }
+
+    try {
+      const res = await this.afetch(
+        this.host + "boats/" + longId + "/speeds?" + query
+      );
+      var o = await res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
   async getLiveState(longId) {
     try {
       const res = await this.afetch(
@@ -192,6 +235,44 @@ class CharlotteAPI {
       return res.json();
     } else {
       return null;
+    }
+  }
+
+  async deleteConfig(longId, cmdId) {
+    try {
+      let url = this.host + "boats/" + longId + "/config/" + cmdId;
+      const res = await this.afetch(url, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        return true;
+      } else {
+        return null;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+
+    return null;
+  }
+
+  async setConfig(longId, config) {
+    try {
+      let url = this.host + "boats/" + longId + "/config";
+      const res = await this.afetch(url, {
+        method: config.cmdid ? "PUT" : "POST",
+        body: JSON.stringify(config),
+        headers: { "Content-Type": "application/json" },
+      });
+
+      if (res.ok) {
+        return res.json();
+      } else {
+        return null;
+      }
+    } catch (err) {
+      console.error(err);
     }
   }
 
