@@ -10,7 +10,7 @@ const API = API_BETA;
 
 class CharlotteAPI {
   constructor(idToken, beta) {
-    this.host = beta ? API_BETA : API_PRODUCTON;
+    this.host = beta ? API_BETA : API_PRODUCTION;
 
     if (idToken) {
       this.auth = idToken;
@@ -585,6 +585,23 @@ class CharlotteAPI {
         body: JSON.stringify(data),
         headers: { "Content-Type": "application/json" },
       });
+      var o = res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async getCalibrations(boatId, before) {
+    try {
+      const res = await this.afetch(
+        this.host +
+          "boats/" +
+          boatId +
+          "/calibrations?before=" +
+          before.toISOString()
+      );
       var o = res.json();
       return o;
     } catch (err) {
