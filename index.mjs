@@ -21,6 +21,10 @@ class CharlotteAPI {
     return API;
   }
 
+  setUserAPIKey(apiKey) {
+    this.userApiKey = apiKey;
+  }
+
   setAuth(idToken) {
     this.auth = idToken;
   }
@@ -48,6 +52,14 @@ class CharlotteAPI {
         realurl += "&api_key=" + this.apiKey;
       }
     }
+    else if (this.userApiKey) {
+      if (url.includes("?") == false) {
+        realurl += "?user_api_key=" + this.userApiKey;
+      } else {
+        realurl += "&user_api_key=" + this.userApiKey;
+      }
+    }
+
     const res = await fetch(realurl, opts);
     return res;
   }
@@ -128,8 +140,8 @@ class CharlotteAPI {
 
   async getSpeeds(longId, p) {
     let params = [];
-    if (p && p.variationlimits) {
-      params.push("variationlimits=true");
+    if (p && p.variationlimits !== undefined) {
+      params.push("variationlimits=" + p.variationlimits);
     }
 
     if (p && p.percentile) {
@@ -148,6 +160,14 @@ class CharlotteAPI {
       params.push("twsbucket=" + p.twsbucket);
     }
 
+    if (p && p.after) {
+      params.push("after=" + new Date(p.after).toISOString());
+    }
+
+    if (p && p.before) {
+      params.push("before=" + new Date(p.before).toISOString());
+    }
+
     let query = "";
     for (let x = 0; x < params.length; x++) {
       if (x > 0) {
@@ -157,6 +177,8 @@ class CharlotteAPI {
     }
 
     try {
+console.log(this.host, query);
+
       const res = await this.afetch(
         this.host + "boats/" + longId + "/speeds?" + query
       );
@@ -600,6 +622,23 @@ class CharlotteAPI {
           "boats/" +
           boatId +
           "/calibrations?before=" +
+          before.toISOString()
+      );
+      var o = res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
+  async getVariation(boatId, before) {
+    try {
+      const res = await this.afetch(
+        this.host +
+          "boats/" +
+          boatId +
+          "/variation?before=" +
           before.toISOString()
       );
       var o = res.json();
