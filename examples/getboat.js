@@ -1,4 +1,4 @@
-import CharlotteAPI from "../index.mjs";
+import { CharlotteAPI } from "../index.js";
 
 const boatId = "2zGrCQC2X9X2LbkzMhFm";
 

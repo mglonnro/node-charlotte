@@ -17,9 +17,9 @@ npm i node-charlotte
 Using Promises:
 
 ```
-test.mjs:
+test.js:
 
-import CharlotteAPI from "node-charlotte";
+import { CharlotteAPI } from "node-charlotte";
 
 const boatId = "2zGrCQC2X9X2LbkzMhFm"; // public boat
 const apiKey = null; // not needed for public data
@@ -34,9 +34,9 @@ api.getBoat(boatId)
 Using async/await
 
 ```
-test.mjs
+test.js
 
-import CharlotteAPI from "node-charlotte";
+import { CharlotteAPI } from "node-charlotte";
 
 const boatId = "2zGrCQC2X9X2LbkzMhFm"; // public boat
 const apiKey = null; // not needed for public data
@@ -80,7 +80,7 @@ Get boat performance for a specific boat calculated based on the recorded data.
 Example:
 
 ```
-import CharlotteAPI from "../index.mjs";
+import { CharlotteAPI } from "node-charlotte";
 
 const boatId = "2zGrCQC2X9X2LbkzMhFm";
 

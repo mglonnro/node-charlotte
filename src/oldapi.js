@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import geolib from "geolib";
-import Hasher from "./hasher.mjs";
+import Hasher from "./hasher.js";
 import { TimeData, TimeSeries } from "@gml/timeseries";
 import fs from "fs";
 
@@ -51,8 +51,7 @@ class CharlotteAPI {
       } else {
         realurl += "&api_key=" + this.apiKey;
       }
-    }
-    else if (this.userApiKey) {
+    } else if (this.userApiKey) {
       if (url.includes("?") == false) {
         realurl += "?user_api_key=" + this.userApiKey;
       } else {
@@ -125,6 +124,40 @@ class CharlotteAPI {
     }
   }
 
+  async getFirstKnown(longId, after, before, resolution) {
+    try {
+      var params = [];
+      if (after) {
+        params.push("after=" + after.toISOString());
+      }
+      if (before) {
+        params.push("before=" + before.toISOString());
+      }
+
+      if (resolution) {
+        params.push("resolution=" + resolution);
+      }
+
+      let query = "";
+      for (let x = 0; x < params.length; x++) {
+        if (x > 0) {
+          query += "&";
+        }
+        query += params[x];
+      }
+
+      let url = this.host + "boats/" + longId + "/history/first/?" + query;
+      console.log("URL", url);
+
+      const res = await this.afetch(url);
+      var o = await res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
   async getMarks(lat, lng) {
     try {
       const res = await this.afetch(
@@ -177,7 +210,7 @@ class CharlotteAPI {
     }
 
     try {
-console.log(this.host, query);
+      console.log(this.host, query);
 
       const res = await this.afetch(
         this.host + "boats/" + longId + "/speeds?" + query
