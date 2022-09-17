@@ -2,7 +2,7 @@ import fetch from "node-fetch";
 import geolib from "geolib";
 import Hasher from "./hasher.js";
 import { TimeData, TimeSeries } from "@gml/timeseries";
-import fs from "fs";
+/* import fs from "fs"; */
 
 const API_BETA = "https://community.nakedsailor.blog/api.beta/";
 const API_PRODUCTION = "https://community.nakedsailor.blog/api/";
@@ -444,6 +444,7 @@ class CharlotteAPI {
     }
   }
 
+  /*
   async uploadData(boatId, fileName) {
     const stats = fs.statSync(fileName);
     const fileSizeInBytes = stats.size;
@@ -479,6 +480,7 @@ class CharlotteAPI {
       console.error(e);
     }
   }
+  */
 
   async getClaims(longId) {
     try {

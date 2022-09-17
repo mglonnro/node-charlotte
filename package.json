@@ -1,6 +1,6 @@
 {
   "name": "node-charlotte",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Node.js package for connecting to Charlotte (charlotte.lc)",
   "main": "index.js",
   "scripts": {
@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/mglonnro/node-charlotte#readme",
   "dependencies": {
-    "@gml/timeseries": "^0.0.5",
+    "@gml/timeseries": "^0.0.6",
     "geolib": "^3.3.1",
     "node-fetch": "^2.6.1"
   }
