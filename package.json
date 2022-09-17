@@ -18,9 +18,8 @@
   },
   "homepage": "https://github.com/mglonnro/node-charlotte#readme",
   "dependencies": {
-    "@gml/timeseries": "0.0.4",
+    "@gml/timeseries": "^0.0.5",
     "geolib": "^3.3.1",
     "node-fetch": "^2.6.1"
-  },
-  "devDependencies": {}
+  }
 }
