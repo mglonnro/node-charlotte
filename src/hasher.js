@@ -1,3 +1,4 @@
+/*
 import crypto from "crypto";
 import fs from "fs";
 
@@ -24,3 +25,4 @@ class Hasher {
 }
 
 export default Hasher;
+*/

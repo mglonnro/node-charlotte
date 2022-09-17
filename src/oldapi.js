@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import geolib from "geolib";
-import Hasher from "./hasher.js";
+/* import Hasher from "./hasher.js"; */
 import { TimeData, TimeSeries } from "@gml/timeseries";
 /* import fs from "fs"; */
 
