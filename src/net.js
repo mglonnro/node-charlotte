@@ -7,7 +7,10 @@ class Client {
   constructor(params) {
     this.ws = {
       local: {
-        address: params && params.platform === 'android' ? LOCAL_ADDRESS_ANDROID : LOCAL_ADDRESS,
+        address:
+          params && params.platform === "android"
+            ? LOCAL_ADDRESS_ANDROID
+            : LOCAL_ADDRESS,
         ws: null,
         active: false,
         interval: null,
@@ -54,31 +57,38 @@ class Client {
     this.conn_listeners.push(f);
   }
 
-  notifyConnListeners(data) {
-	for (let x = 0; x < this.conn_listeners.length; x++) {
-	  this.conn_listeners[x](data);
-        }
+  notifyConnListeners() {
+    const data = {
+      cloud: Object.assign({}, this.ws.cloud, {
+        isReady: this.ws.cloud.ws ? this.ws.cloud.ws.readyState === 1 : false,
+      }),
+      local: Object.assign({}, this.ws.local, {
+        isReady: this.ws.local.ws ? this.ws.local.ws.readyState === 1 : false,
+      }),
+    };
+
+    for (let x = 0; x < this.conn_listeners.length; x++) {
+      this.conn_listeners[x](data);
+    }
   }
 
   init(name) {
     console.log("Attempting", name, "connection to", this.ws[name].address);
     try {
-    this.ws[name].ws = new WebSocket(this.ws[name].address);
-    }
-    catch (e) {
-	console.error(e);
+      this.ws[name].ws = new WebSocket(this.ws[name].address);
+    } catch (e) {
+      console.error(e);
     }
 
     this.ws[name].ws.onopen = () => {
       console.log(name, "connected");
+      this.notifyConnListeners();
     };
     this.ws[name].ws.onclose = (e) => {
       console.log(name, "disconnected, retrying ...");
       this.ws[name].active = false;
 
       if (name === "local") {
-	this.notifyConnListeners({ local: false });
-
         if (this.ws.cloud.ws && this.ws.cloud.ws.readyState === 1) {
           try {
             this.ws.cloud.ws.send(JSON.stringify({ cmd: "unpause" }));
@@ -88,6 +98,9 @@ class Client {
           }
         }
       }
+
+      this.notifyConnListeners();
+
       this.ws[name].ws.interval = setTimeout(() => {
         this.init(name);
       }, 2000);
@@ -112,7 +125,7 @@ class Client {
           this.ws.cloud.ws.active = false;
         }
 
-	this.notifyConnListeners({ local: true });
+        this.notifyConnListeners();
       }
 
       if (name === "cloud") {
@@ -129,6 +142,9 @@ class Client {
             this.ws.cloud.ws.active = false;
           }
           return;
+        } else if (this.ws.cloud.ws.active === false) {
+          this.ws.cloud.ws.active = true;
+          this.notifyConnListeners();
         }
       }
 

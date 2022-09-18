@@ -18,7 +18,7 @@ class Data {
   getMinMax(name) {
     return this.avg.minMax(name);
   }
- 
+
   getAvg(name) {
     return this.avg.value(name);
   }
@@ -26,7 +26,7 @@ class Data {
   init() {
     this.client = new Client(this.params);
     this.avg = new Average();
-	
+
     const avg = this.avg;
 
     var d = {};
@@ -36,7 +36,7 @@ class Data {
 
     this.client.onconnection((data) => {
       if (this.onConnection) {
-	this.onConnection(data);
+        this.onConnection(data);
       }
     });
 
@@ -132,10 +132,10 @@ class Data {
       d.lag = avg.value("lag");
 
       if (this.onData) {
-	this.onData(d);
+        this.onData(d);
       }
     });
-  };
+  }
 
   close() {
     if (this.client) {
@@ -144,4 +144,4 @@ class Data {
   }
 }
 
-export { Data }
+export { Data };

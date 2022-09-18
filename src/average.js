@@ -1,17 +1,17 @@
 const DEG2RAD = (angle) => {
   return angle * (Math.PI / 180);
-}
+};
 
-const RAD2DEG = (angle) => {
+const RAD2DEG = (angle) => {
   return angle * (180 / Math.PI);
-}
+};
 
 class Average {
   constructor() {
     this.data = {};
     this.lastValid = {};
     this.hzData = {};
-    this.min = {};
+    this.min = {};
     this.max = {};
   }
 
@@ -55,7 +55,7 @@ class Average {
   }
 
   minMax(name) {
-    return { min: this.min[name], max: this.max[name] }
+    return { min: this.min[name], max: this.max[name] };
   }
 
   value(name) {
