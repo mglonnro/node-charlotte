@@ -142,8 +142,10 @@ class Client {
             this.ws.cloud.ws.active = false;
           }
           return;
-        } else if (this.ws.cloud.ws.active === false) {
-          this.ws.cloud.ws.active = true;
+        } 
+
+	if (this.ws.cloud.active === false) {
+          this.ws.cloud.active = true;
           this.notifyConnListeners();
         }
       }
