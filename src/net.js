@@ -109,11 +109,11 @@ class Client {
       console.error(e.message);
     };
     this.ws[name].ws.onmessage = (e) => {
-      // console.log("message", name, e.data);
+      //console.log("message", name, "local.active", this.ws.local.active, "cloud.active", this.ws.cloud.active, e.data);
       // If we're receiving local messages, put the cloud connection on hold
       if (name === "local" && !this.ws.local.active) {
         this.ws.local.active = true;
-        if (this.ws.cloud.ws && this.ws.cloud.ws.active) {
+        if (this.ws.cloud.ws && this.ws.cloud.active) {
           console.log("Pausing cloud ...");
           if (this.ws.cloud.ws.readyState === 1) {
             try {
@@ -122,7 +122,7 @@ class Client {
               console.error(e);
             }
           }
-          this.ws.cloud.ws.active = false;
+          this.ws.cloud.active = false;
         }
 
         this.notifyConnListeners();
@@ -130,7 +130,7 @@ class Client {
 
       if (name === "cloud") {
         if (this.ws.local.active === true) {
-          if (this.ws.cloud.ws && this.ws.cloud.ws.active) {
+          if (this.ws.cloud.ws) {
             console.log("Pausing cloud (from cloud message) ...");
             if (this.ws.cloud.ws.readyState === 1) {
               try {
@@ -139,12 +139,12 @@ class Client {
                 console.error(e);
               }
             }
-            this.ws.cloud.ws.active = false;
+            this.ws.cloud.active = false;
           }
           return;
-        } 
+        }
 
-	if (this.ws.cloud.active === false) {
+        if (this.ws.cloud.active === false) {
           this.ws.cloud.active = true;
           this.notifyConnListeners();
         }
