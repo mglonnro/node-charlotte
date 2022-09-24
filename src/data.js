@@ -114,6 +114,14 @@ class Data {
         avg.push("depth", { time: new Date(json.time), value: json.depth }, 5);
       }
 
+      if (json.pitch) {
+        avg.push("pitch", { time: new Date(json.time), value: json.pitch }, 5);
+      }
+
+      if (json.roll) {
+        avg.push("roll", { time: new Date(json.time), value: json.roll }, 5);
+      }
+
       d.tws = avg.value("tws");
       d.tws60 = avg.value("tws60");
 
@@ -129,6 +137,8 @@ class Data {
       d.lng = avg.value("lng");
 
       d.depth = avg.value("depth");
+      d.pitch = avg.value("pitch");
+      d.roll = avg.value("roll");
       d.lag = avg.value("lag");
 
       if (this.onData) {
