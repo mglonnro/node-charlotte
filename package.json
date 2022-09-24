@@ -1,6 +1,6 @@
 {
   "name": "node-charlotte",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Node.js package for connecting to Charlotte (charlotte.lc)",
   "main": "index.js",
   "scripts": {

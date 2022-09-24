@@ -124,6 +124,7 @@ class Data {
 
       d.tws = avg.value("tws");
       d.tws60 = avg.value("tws60");
+      d.twa60 = avg.value("twa60");
 
       d.awa = avg.anglevalue("awa");
       d.twa = avg.anglevalue("twa");
