@@ -94,8 +94,8 @@ class Average {
       let cosTotal = 0;
 
       for (let i = 0; i < arrayLength; i++) {
-        sinTotal += Math.sin(DEG2RAD(array[i] * (Math.PI / 180)));
-        cosTotal += Math.cos(DEG2RAD(array[i] * (Math.PI / 180)));
+        sinTotal += Math.sin(DEG2RAD(array[i]));
+        cosTotal += Math.cos(DEG2RAD(array[i]));
       }
 
       let averageDirection = Math.atan(sinTotal / cosTotal) * (180 / Math.PI);
