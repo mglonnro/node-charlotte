@@ -1,5 +1,7 @@
+import "websocket-polyfill";
+
 const CLOUD_ADDRESS =
-  "wss://community.nakedsailor.blog/api/boat/0BdUhaaJEL4muiUyjpzs/dataclient2";
+  "wss://community.nakedsailor.blog/api/boat/$BOATID/dataclient2";
 const LOCAL_ADDRESS = "ws://charlotte.local:7681/";
 const LOCAL_ADDRESS_ANDROID = "ws://charlotte:7681/";
 
@@ -28,7 +30,13 @@ class Client {
   }
 
   // This is the root function that starts keeping alive connections until someone asks us not to
-  connect() {
+  connect(boatId) {
+    if (!boatId) {
+      throw "Cannot connect without boatId";
+    }
+
+    this.ws.cloud.address = this.ws.cloud.address.replace("$BOATID", boatId);
+
     if (this.connect_called) {
       throw "Connect should only be called once!";
     }

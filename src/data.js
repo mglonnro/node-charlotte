@@ -5,14 +5,16 @@ import { Client } from "./net.js";
 class Data {
   constructor(params) {
     this.params = params;
+    this.onC = null;
+    this.onD = null;
   }
 
   onConnection(f) {
-    this.onConnection = f;
+    this.onC = f;
   }
 
   onData(f) {
-    this.onData = f;
+    this.onD = f;
   }
 
   getMinMax(name) {
@@ -23,7 +25,10 @@ class Data {
     return this.avg.value(name);
   }
 
-  init() {
+  init(boatId) {
+    // Close any previous connections
+    this.close();
+
     this.client = new Client(this.params);
     this.avg = new Average();
 
@@ -32,11 +37,11 @@ class Data {
     var d = {};
     var debug_data = {};
 
-    this.client.connect();
+    this.client.connect(boatId);
 
     this.client.onconnection((data) => {
-      if (this.onConnection) {
-        this.onConnection(data);
+      if (this.onC !== null) {
+        this.onC(data);
       }
     });
 
@@ -142,8 +147,8 @@ class Data {
       d.roll = avg.value("roll");
       d.lag = avg.value("lag");
 
-      if (this.onData) {
-        this.onData(d);
+      if (this.onD !== null) {
+        this.onD(d);
       }
     });
   }

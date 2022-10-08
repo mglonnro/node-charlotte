@@ -4,7 +4,7 @@ const boatId = "2zGrCQC2X9X2LbkzMhFm";
 const USERAPIKEY = "...";
 
 async function main() {
-  const api = new CharlotteAPI(null, true);
+  const api = new CharlotteAPI(null, false);
   api.setUserAPIKey(USERAPIKEY);
   const res = await api.getBoats();
 
