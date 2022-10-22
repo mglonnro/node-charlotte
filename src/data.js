@@ -2,11 +2,19 @@ import { getDistance } from "geolib";
 import { Average } from "./average.js";
 import { Client } from "./net.js";
 
+const ais_timeout = 5 * 60; // seconds
+
 class Data {
   constructor(params) {
     this.params = params;
     this.onC = null;
     this.onD = null;
+    this.onA = null;
+    this.mmsi = null;
+  }
+
+  setMMSI(mmsi) {
+    this.mmsi = mmsi;
   }
 
   onConnection(f) {
@@ -15,6 +23,10 @@ class Data {
 
   onData(f) {
     this.onD = f;
+  }
+
+  onAIS(f) {
+    this.onA = f;
   }
 
   getMinMax(name) {
@@ -35,6 +47,7 @@ class Data {
     const avg = this.avg;
 
     var d = {};
+    var aisstate = {};
     var debug_data = {};
 
     this.client.connect(boatId);
@@ -59,6 +72,46 @@ class Data {
           },
           5
         );
+      }
+
+      if (json.aisstate) {
+        aisstate = Object.assign({}, json.aisstate);
+        delete json.aisstate;
+        if (this.onA) {
+          this.onA(aisstate);
+        }
+      }
+
+      if (json.ais) {
+        let user_id = Object.keys(json.ais)[0];
+
+        aisstate = Object.assign({}, aisstate, {
+          [user_id]: Object.assign({}, aisstate[user_id], json.ais[user_id], {
+            time: new Date(),
+          }),
+        });
+
+        // Clean old stuff
+        for (let userid in aisstate) {
+          if (!aisstate[userid].time) {
+            delete aisstate[userid];
+            continue;
+          }
+
+          if (
+            new Date().getTime() - new Date(aisstate[userid].time).getTime() >=
+            ais_timeout * 1000
+          ) {
+            console.log("removing", userid, aisstate[userid].time);
+            delete aisstate[userid];
+          }
+        }
+
+        delete json.ais;
+
+        if (this.onA && user_id !== this.mmsi) {
+          this.onA(aisstate);
+        }
       }
 
       d = Object.assign({}, d, json);
