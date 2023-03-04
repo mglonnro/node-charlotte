@@ -206,6 +206,12 @@ class Data {
     });
   }
 
+  send(data) {
+    if (this.client) {
+      this.client.send(data);
+    }
+  }
+
   close() {
     if (this.client) {
       this.client.close();

@@ -57,6 +57,14 @@ class Client {
     }, 2000);
   }
 
+  send(data) {
+    if (this.ws.local.ws && this.ws.local.active) {
+      this.ws.local.ws.send(JSON.stringify(data));
+    } else if (this.ws.cloud.ws && this.ws.cloud.active) {
+      this.ws.cloud.ws.send(JSON.stringify(data));
+    }
+  }
+
   onmessage(f) {
     this.listeners.push(f);
   }

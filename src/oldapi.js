@@ -684,6 +684,23 @@ class CharlotteAPI {
     }
   }
 
+  async getDeviations(boatId, before) {
+    try {
+      const res = await this.afetch(
+        this.host +
+          "boats/" +
+          boatId +
+          "/deviations?before=" +
+          before.toISOString()
+      );
+      var o = res.json();
+      return o;
+    } catch (err) {
+      console.error(err);
+      return null;
+    }
+  }
+
   async getData(
     boatId,
     resolution,
