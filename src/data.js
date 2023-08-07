@@ -248,6 +248,7 @@ class Data {
         pitch: { precision: 1 },
         roll: { precision: 1 },
         heading: { precision: 1 },
+	rot: { precision: 3 },
       };
 
       var tmp = {},
