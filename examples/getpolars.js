@@ -1,10 +1,16 @@
 import { CharlotteAPI } from "../index.js";
 
-const boatId = "2zGrCQC2X9X2LbkzMhFm";
+// const boatId = "2zGrCQC2X9X2LbkzMhFm";
+const boatId = "0BdUhaaJEL4muiUyjpzs";
 
 async function main() {
   var api = new CharlotteAPI(null, true);
-  var res = await api.getSpeeds(boatId, { variationlimits: true, unit: "kt", after: "2021-04-17", before: "2021-04-18" });
+  var res = await api.getSpeeds(boatId, {
+    variationlimits: true,
+    unit: "kt",
+    after: "2022-06-29",
+    before: "2022-07-01",
+  });
 
   console.log(res);
 

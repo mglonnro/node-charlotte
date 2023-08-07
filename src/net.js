@@ -1,7 +1,8 @@
 import "websocket-polyfill";
 
-const CLOUD_ADDRESS =
-  "wss://community.nakedsailor.blog/api/boat/$BOATID/dataclient2";
+const CLOUD_BASE = "wss://community.nakedsailor.blog/api/boat/$BOATID";
+const CLOUD_ADDRESS_BRIEF = CLOUD_BASE + "/dataclient2";
+const CLOUD_ADDRESS_ALL = CLOUD_BASE + "/dataclient";
 const LOCAL_ADDRESS = "ws://charlotte.local:7681/";
 const LOCAL_ADDRESS_ANDROID = "ws://charlotte:7681/";
 
@@ -18,12 +19,13 @@ class Client {
         interval: null,
       },
       cloud: {
-        address: CLOUD_ADDRESS,
+        address: CLOUD_ADDRESS_ALL,
         ws: null,
         active: false,
         interval: null,
       },
     };
+    this.params = params || {};
     this.listeners = [];
     this.conn_listeners = [];
     this.connect_called = false;
@@ -97,9 +99,10 @@ class Client {
     }
 
     this.ws[name].ws.onopen = () => {
-      console.log(name, "connected");
+      console.log(name, "connected to", this.ws[name].address);
       this.notifyConnListeners();
     };
+
     this.ws[name].ws.onclose = (e) => {
       console.log(name, "disconnected, retrying ...");
       this.ws[name].active = false;
@@ -125,7 +128,17 @@ class Client {
       console.error(e.message);
     };
     this.ws[name].ws.onmessage = (e) => {
-      //console.log("message", name, "local.active", this.ws.local.active, "cloud.active", this.ws.cloud.active, e.data);
+      /*
+      console.log(
+        "message",
+        name,
+        "local.active",
+        this.ws.local.active,
+        "cloud.active",
+        this.ws.cloud.active,
+        e.data
+      );
+	*/
       // If we're receiving local messages, put the cloud connection on hold
       if (name === "local" && !this.ws.local.active) {
         this.ws.local.active = true;

@@ -58,7 +58,7 @@ class Average {
     return { min: this.min[name], max: this.max[name] };
   }
 
-  value(name) {
+  value(name, precision) {
     let ret;
 
     if (this.data[name] && this.data[name].length) {
@@ -72,13 +72,22 @@ class Average {
       ret /= this.data[name].length;
 
       this.lastValid[name] = ret;
-      return ret;
+      return this.round(ret, precision);
     } else {
-      return this.lastValid[name];
+      return this.round(this.lastValid[name], precision);
     }
   }
 
-  anglevalue(name) {
+  round(v, precision) {
+    if (precision === undefined) {
+      return v;
+    }
+
+    const factor = Math.pow(10, precision);
+    return Math.round(v * factor) / factor;
+  }
+
+  anglevalue(name, precision) {
     let ret;
 
     if (this.data[name] && this.data[name].length) {
@@ -108,9 +117,9 @@ class Average {
 
       ret = averageDirection;
       this.lastValid[name] = ret;
-      return ret;
+      return this.round(ret, precision);
     } else {
-      return this.lastValid[name];
+      return this.round(this.lastValid[name], precision);
     }
   }
 

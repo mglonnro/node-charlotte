@@ -10,7 +10,8 @@ async function main() {
 
   console.log(res);
 
-  let total = 0, totaltime = 0;
+  let total = 0,
+    totaltime = 0;
 
   for (let x = 0; x < res.length; x++) {
     let date = new Date(res[x].start);
@@ -18,7 +19,13 @@ async function main() {
     if (date.getTime() < new Date(2021, 5, 13)) {
       total += res[x].realdistance;
       totaltime += res[x].duration;
-      console.log(res[x].start, res[x].realdistance, total, res[x].duration, totaltime);
+      console.log(
+        res[x].start,
+        res[x].realdistance,
+        total,
+        res[x].duration,
+        totaltime
+      );
     }
   }
 }

@@ -1,6 +1,7 @@
 import { getDistance } from "geolib";
 import { Average } from "./average.js";
 import { Client } from "./net.js";
+import CharlotteAPI from "./oldapi.js";
 
 const ais_timeout = 5 * 60; // seconds
 
@@ -10,7 +11,16 @@ class Data {
     this.onC = null;
     this.onD = null;
     this.onA = null;
+    this.onM = null;
     this.mmsi = null;
+    this.sourceMap = {};
+    this.deviceMap = {};
+
+    /* The meta struct contains data variables and their sources */
+    this.meta = {};
+
+    /* For api calls */
+    this.api = new CharlotteAPI();
   }
 
   setMMSI(mmsi) {
@@ -23,6 +33,10 @@ class Data {
 
   onData(f) {
     this.onD = f;
+  }
+
+  onMeta(f) {
+    this.onM = f;
   }
 
   onAIS(f) {
@@ -41,6 +55,39 @@ class Data {
     // Close any previous connections
     this.close();
 
+    // Allow a second before retrieving current meta info
+    setTimeout(async () => {
+      try {
+        this.devices = await this.api.getDevices(boatId);
+
+        if (this.devices) {
+          for (const device of this.devices) {
+            this.deviceMap[device.unique_number] = device;
+          }
+        }
+
+        this.claims = await this.api.getClaims(boatId);
+
+        for (const claim of this.claims) {
+          this.sourceMap[claim.src] = this.deviceMap[claim.unique_number];
+        }
+      } catch (e) {
+        console.error("Error getting devices");
+      }
+
+      /* Update meta if we have */
+      for (const key in this.meta) {
+        for (const src in this.meta[key]) {
+          this.meta[key][src].device = this.sourceMap[src];
+        }
+      }
+
+      /* And callback ... */
+      if (this.onM) {
+        this.onM(Object.assign({}, this.meta));
+      }
+    }, 1000);
+
     this.client = new Client(this.params);
     this.avg = new Average();
 
@@ -48,7 +95,6 @@ class Data {
 
     var d = {};
     var aisstate = {};
-    var debug_data = {};
 
     this.client.connect(boatId);
 
@@ -57,6 +103,48 @@ class Data {
         this.onC(data);
       }
     });
+
+    const DAMPING_1 = 5,
+      DAMPING_2 = 60;
+    const dampings = [DAMPING_1, DAMPING_2];
+
+    const pushValue = (data, basename, params) => {
+      var ret = {};
+
+      if (data[basename]) {
+        if (typeof data[basename] === "object") {
+          for (const src in data[basename]) {
+            /* for (const damp of dampings) {
+              const key_1 = basename + ":" + src + ":" + damp.toString();
+              const key_2 = src;  + ":" + damp.toString();
+	   */
+
+            /*
+              avg.push(
+                key_1,
+                { time: new Date(data.time), value: data[basename][src] },
+                damp
+              ); */
+
+            if (!ret[basename]) {
+              ret[basename] = {};
+            }
+
+            ret[basename] = Object.assign(ret[basename], {
+              [src]: {
+                value: data[basename][src],
+                /*params && params.angle
+                    ? avg.anglevalue(key_1, params.precision)
+                    : avg.value(key_1, params.precision), */
+              },
+            });
+            /* } */
+          }
+        }
+      }
+
+      return ret;
+    };
 
     this.client.onmessage((e) => {
       avg.push("hz", { time: new Date(), value: 1 }, 5);
@@ -72,6 +160,40 @@ class Data {
           },
           5
         );
+      }
+
+      /* Run through the data to see if we have some new meta info */
+      let meta_updated = false;
+      for (const key in json) {
+        if (key === "ais" || key === "aisstate") {
+          continue;
+        }
+
+        /* We're only interested in objects, ie things with actual data */
+        if (typeof json[key] === "object") {
+          if (!this.meta[key]) {
+            this.meta[key] = {};
+            meta_updated = true;
+          }
+
+          for (const src in json[key]) {
+            if (!this.meta[key][src]) {
+              this.meta[key][src] = {
+                device: this.sourceMap[src],
+                value: json[key][src],
+                seen: new Date().toISOString(),
+              };
+              meta_updated = true;
+            } else {
+              this.meta[key][src].seen = new Date().toISOString();
+            }
+          }
+        }
+      }
+
+      /* Fire callback for meta updates if we have some */
+      if (meta_updated && this.onM) {
+        this.onM(Object.assign({}, this.meta));
       }
 
       if (json.aisstate) {
@@ -102,7 +224,6 @@ class Data {
             new Date().getTime() - new Date(aisstate[userid].time).getTime() >=
             ais_timeout * 1000
           ) {
-            console.log("removing", userid, aisstate[userid].time);
             delete aisstate[userid];
           }
         }
@@ -114,23 +235,52 @@ class Data {
         }
       }
 
-      d = Object.assign({}, d, json);
+      /* Default precision is 1 */
+      const basevars = {
+        aws: { precision: 1 },
+        awa: { angle: true, precision: 0 },
+        twa: { angle: true, precision: 0 },
+        twd: { angle: true, precision: 0 },
+        tws: { precision: 1 },
+        lat: { precision: undefined },
+        lng: { precision: undefined },
+        depth: { precision: 1 },
+        pitch: { precision: 1 },
+        roll: { precision: 1 },
+        heading: { precision: 1 },
+      };
 
-      if (json.awa || json.twd || json.heading) {
-        debug_data = Object.assign({}, debug_data, json);
-        let dawa = debug_data.awa,
-          dtwd = debug_data.twd,
-          dheading = debug_data.heading;
+      var tmp = {},
+        ret = {};
+
+      for (const v in basevars) {
+        if (json[v]) {
+          tmp = Object.assign({}, ret, pushValue(json, v, basevars[v]));
+
+          /* Do we have any actual changes? */
+          for (const k in tmp) {
+            if (!d[k]) {
+              ret[k] = tmp[k];
+            } else {
+              for (const subkey in tmp[k]) {
+                if (
+                  !d[k][subkey] ||
+                  tmp[k][subkey].value !== d[k][subkey].value
+                ) {
+                  if (!ret[k]) {
+                    ret[k] = Object.assign({}, d[k]);
+                  }
+                  ret[k][subkey] = tmp[k][subkey];
+                }
+              }
+            }
+          }
+        }
       }
 
-      if (json.aws) {
-        avg.push("aws", { time: new Date(json.time), value: json.aws }, 5);
-        avg.push("aws60", { time: new Date(json.time), value: json.aws }, 60);
-        d.aws = avg.value("aws");
-        d.aws60 = avg.value("aws60");
-      }
+      d = Object.assign({}, d, ret);
 
-      if (json.awa) {
+      /* if (json.awa) {
         // To prevent averaging "flips" (going from -180 to +180 or 360 to 0), we'll add 360 to the incoming value
         // We'll flip this back later
         let awa = json.awa;
@@ -166,7 +316,7 @@ class Data {
         avg.push("lat", { time: new Date(json.time), value: json.lat }, 5);
         avg.push("lng", { time: new Date(json.time), value: json.lng }, 5);
         d.lastPositionTime = new Date(json.time);
-      }
+      } 
 
       if (json.depth) {
         avg.push("depth", { time: new Date(json.time), value: json.depth }, 5);
@@ -179,7 +329,9 @@ class Data {
       if (json.roll) {
         avg.push("roll", { time: new Date(json.time), value: json.roll }, 5);
       }
+	*/
 
+      /*
       d.tws = avg.value("tws");
       d.tws60 = avg.value("tws60");
       d.twa60 = avg.value("twa60");
@@ -199,9 +351,10 @@ class Data {
       d.pitch = avg.value("pitch");
       d.roll = avg.value("roll");
       d.lag = avg.value("lag");
+	*/
 
-      if (this.onD !== null) {
-        this.onD(d);
+      if (Object.keys(ret).length > 0 && this.onD !== null) {
+        this.onD(ret);
       }
     });
   }
